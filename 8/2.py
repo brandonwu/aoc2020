@@ -20,9 +20,12 @@ def main(arr):
 
             patch = to_patch.pop()
 
-            # remove visited pcs after last patch point
-            for old_pc, _, _, _ in filter(lambda x: x[0], trace[patch::]):
-                visited.remove(old_pc)
+            # remove pc of instruction we're patching from visited so we can
+            # re-run it without triggering this loop detect
+            # keep the pcs run after this trace point because they
+            # lead to terminal states (there are no conditional jmps)
+            old_pc, _, _, _ = trace[patch]
+            visited.remove(old_pc)
 
             pc, acc, old_ins, val = trace[patch]
 
@@ -30,7 +33,7 @@ def main(arr):
                 ins = 'nop'
             elif old_ins == 'nop':
                 ins = 'jmp'
-            print('PATCH pc={0:3} {1} {2:+3} -> {3} {2:+3}'.format(pc, old_ins, val, ins))
+            print('>PATCH< pc={0:3} {1} -> {2}'.format(pc, old_ins, ins))
 
             # truncate execution trace to before last patch point
             trace = trace[:patch:]
