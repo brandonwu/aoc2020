@@ -13,7 +13,7 @@ def run(file):
     print(main([parse(line.strip()) for line in arr]))
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     with open('testinput', 'r') as f:
         run(f)
     with open('input', 'r') as f:
