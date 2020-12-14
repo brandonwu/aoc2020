@@ -65,3 +65,6 @@
 * 10 - graph, dfs, dp; `O(V + E)`
 
 	* The first one that requires DP to run.
+
+	* **Exercise: convince yourself of the correctness of the mathmatical factorization solutions (here)[https://www.reddit.com/r/adventofcode/comments/ka9pc3/2020_day_10_part_2_suspicious_factorisation/]**
+
