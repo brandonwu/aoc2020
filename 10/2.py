@@ -1,45 +1,69 @@
 #!/usr/bin/env python
 
+
+TESTS = [
+    ('testinput', 8),
+    ('testinput2', 19208),
+    ('input', None),
+]
+
+
 def parse(line):
     return int(line)
 
 
+def dfs(node, graph):
+    val, pos = node
+    # base case
+    if pos == (len(graph) - 1):
+        return 1
+    # recurse
+    else:
+        acc = 0
+        for i in range(pos + 1, min(pos + 4, len(graph))):
+            testval = graph[i]
+
+            if testval - val <= 3:
+                ways = dfs((testval, i), graph)
+
+                acc += ways
+
+        return acc
+
+
+def dfs_help(graph):
+    return dfs((0, 0), graph)
+
+
 def main(arr):
-    s = sorted(arr)
-    end = len(s)
+    s = [0]
+    s.extend(sorted(arr))
+    s.append(s[-1] + 3)
 
-    ways = 0
-    q = [(0, 0)]
-
-    # brute force, too slow!
-    while q:
-        last, i = q.pop()
-
-        for i in range(i, i + 3):
-            if i >= end:
-                break
-
-            test = s[i]
-            if test - last <= 3:
-                if i + 1 >= end:
-                    ways += 1
-                else:
-                    q.append((test, i + 1))
-            else:
-                break
-
-    return ways
+    return dfs_help(s)
 
 
 def run(file):
-    arr = f.readlines()
-    print(main([parse(line.strip()) for line in arr]))
+    arr = file.readlines()
+    return main([parse(line.strip()) for line in arr])
+
+
+def runFile(file, expected=None):
+    with open(file, 'r') as f:
+        print('\n%s\n%s' % (file, '=' * len(file)))
+        result = run(f)
+
+        if expected:
+            if result != expected:
+                msg = 'FAIL: expected %s got %s' % (expected, result)
+            else:
+                msg = 'SUCCESS'
+
+            print(msg)
+        else:
+            print('GOT: %s' % result)
 
 
 if __name__ == '__main__':
-    with open('testinput', 'r') as f:
-        run(f)
-    with open('testinput2', 'r') as f:
-        run(f)
-    with open('input', 'r') as f:
-        run(f)
+    for file, expect in TESTS:
+        runFile(file, expect)
