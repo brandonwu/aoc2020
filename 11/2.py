@@ -2,7 +2,7 @@
 
 
 TESTS = [
-    ('testinput', 37),
+    ('testinput', 26),
     ('testinput2', None),
     ('input', None),
 ]
@@ -43,9 +43,6 @@ def main(arr):
                 adj_occu = 0
                 for adj_y in range(max(0, y - 1), min(y + 2, h)):
                     for adj_x in range(max(0, x - 1), min(x + 2, w)):
-                        if adj_occu >= 4:
-                            break
-
                         if x == adj_x and y == adj_y:
                             continue
                         adj = arr[adj_y][adj_x] >> read_rshift & 0b11
