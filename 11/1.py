@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from collections import defaultdict
+
 
 TESTS = [
     ('testinput', 37),
@@ -27,49 +29,62 @@ def main(arr):
     read_rshift, write_lshift = 0, 2
     write_mask = 0b0011
 
+    seats = []
+
+    neighbors = defaultdict(list)
+
+    for y in range(h):
+        for x in range(w):
+            val = arr[y][x]
+
+            if val:
+                seats.append((x, y))
+
+                for adj_y in range(max(0, y - 1), min(y + 2, h)):
+                    for adj_x in range(max(0, x - 1), min(x + 2, w)):
+                        if x == adj_x and y == adj_y:
+                            continue
+                        adj = arr[adj_y][adj_x]
+                        if arr:
+                            neighbors[(x, y)].append((adj_x, adj_y))
+
     while True:
         seat_changed = False
 
-        # print('\nround')
-        for y in range(h):
-            for x in range(w):
-                cur = arr[y][x] >> read_rshift & 0b11
-                # print('%d' % cur, end='')
-                # floor
-                if not cur:
-                    # print('[*]', end='')
-                    continue
+        for seat in seats:
+            x, y = seat
+            cur = arr[y][x] >> read_rshift & 0b11
 
-                adj_occu = 0
-                for adj_y in range(max(0, y - 1), min(y + 2, h)):
-                    for adj_x in range(max(0, x - 1), min(x + 2, w)):
-                        if adj_occu >= 4:
-                            break
+            adj_occu = 0
 
-                        if x == adj_x and y == adj_y:
-                            continue
-                        adj = arr[adj_y][adj_x] >> read_rshift & 0b11
+            for neighbor in neighbors[(x, y)]:
+                adj_x, adj_y = neighbor
 
-                        # occupied chair
-                        if adj == OCCUP:
-                            adj_occu += 1
-                # print('[%d]' % adj_occu, end='')
+                if adj_occu >= 4:
+                    break
 
-                arr[y][x] &= write_mask
-                # occupy this seat if adj unoccupied
-                if cur == EMPTY and adj_occu == 0:
-                    arr[y][x] |= (OCCUP << write_lshift)
-                    seat_changed = True
-                    occupied += 1
-                # empty this seat if more than 4 occupied
-                elif cur == OCCUP and adj_occu >= 4:
-                    arr[y][x] |= (EMPTY << write_lshift)
-                    seat_changed = True
-                    occupied -= 1
-                # copy the seat over if no change
-                else:
-                    arr[y][x] |= (cur << write_lshift)
-                # print('>%d' % arr[y][x], end='')
+                adj = arr[adj_y][adj_x] >> read_rshift & 0b11
+
+                # occupied chair
+                if adj == OCCUP:
+                    adj_occu += 1
+            # print('[%d]' % adj_occu, end='')
+
+            arr[y][x] &= write_mask
+            # occupy this seat if adj unoccupied
+            if cur == EMPTY and adj_occu == 0:
+                arr[y][x] |= (OCCUP << write_lshift)
+                seat_changed = True
+                occupied += 1
+            # empty this seat if more than 4 occupied
+            elif cur == OCCUP and adj_occu >= 4:
+                arr[y][x] |= (EMPTY << write_lshift)
+                seat_changed = True
+                occupied -= 1
+            # copy the seat over if no change
+            else:
+                arr[y][x] |= (cur << write_lshift)
+            # print('>%d' % arr[y][x], end='')
 
             # print()
 
