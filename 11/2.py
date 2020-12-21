@@ -27,48 +27,153 @@ def main(arr):
     read_rshift, write_lshift = 0, 2
     write_mask = 0b0011
 
+    # (x, y) -> [[neighbors]]
+    neighbors = {}
+
+    # find chairs
+    for y in range(h):
+        for x in range(w):
+            cur = arr[y][x] >> read_rshift & 0b11
+            # print('%d' % cur, end='')
+            # floor
+            if not cur:
+                # print('[*]', end='')
+                continue
+
+            neighbors[(x, y)] = []
+            # neighbors[(x, y)] = [[None] * 3, [None] * 3, [None] * 3]
+
+    # find chair neighbors
+    for ctr, nbr in neighbors.items():
+        ctr_x, ctr_y = ctr
+
+        # left
+        for x in range(ctr_x, -1, -1):
+            if x == ctr_x:
+                continue
+            cur = arr[ctr_y][x] >> read_rshift & 0b11
+            if cur:
+                # nbr[1][0] = (x, ctr_y)
+                nbr.append((x, ctr_y))
+                break
+
+        # right
+        for x in range(ctr_x, w):
+            if x == ctr_x:
+                continue
+            cur = arr[ctr_y][x] >> read_rshift & 0b11
+            if cur:
+                #nbr[1][2] = (x, ctr_y)
+                nbr.append((x, ctr_y))
+                break
+
+        # top
+        for y in range(ctr_y, -1, -1):
+            if y == ctr_y:
+                continue
+            cur = arr[y][ctr_x] >> read_rshift & 0b11
+            if cur:
+                # nbr[0][1] = (ctr_x, y)
+                nbr.append((ctr_x, y))
+                break
+
+        # bot
+        for y in range(ctr_y, h):
+            if y == ctr_y:
+                continue
+            cur = arr[y][ctr_x] >> read_rshift & 0b11
+            if cur:
+                # nbr[2][1] = (ctr_x, y)
+                nbr.append((ctr_x, y))
+                break
+
+        # topleft
+        for i in range(min(ctr_x + 1, ctr_y + 1)):
+            x, y = ctr_x - i, ctr_y - i
+            if x == ctr_x and y == ctr_y:
+                continue
+
+            cur = arr[y][x] >> read_rshift & 0b11
+            if cur:
+                # nbr[0][0] = (x, y)
+                nbr.append((x, y))
+                break
+
+        # topright
+        for i in range(min(w - ctr_x, ctr_y + 1)):
+            x, y = ctr_x + i, ctr_y - i
+            if x == ctr_x and y == ctr_y:
+                continue
+
+            cur = arr[y][x] >> read_rshift & 0b11
+            if cur:
+                #nbr[0][2] = (x, y)
+                nbr.append((x, y))
+                break
+
+        # botleft
+        for i in range(min(ctr_x + 1, h - ctr_y)):
+            x, y = ctr_x - i, ctr_y + i
+            if x == ctr_x and y == ctr_y:
+                continue
+
+            cur = arr[y][x] >> read_rshift & 0b11
+            if cur:
+                # nbr[2][0] = (x, y)
+                nbr.append((x, y))
+                break
+
+        # botright
+        for i in range(min(w - ctr_x, h - ctr_y)):
+            x, y = ctr_x + i, ctr_y + i
+            if x == ctr_x and y == ctr_y:
+                continue
+
+            cur = arr[y][x] >> read_rshift & 0b11
+            if cur:
+                # nbr[2][2] = (x, y)
+                nbr.append((x, y))
+                break
+
+    # print(neighbors)
+    rd = 0
     while True:
         seat_changed = False
 
-        # print('\nround')
-        for y in range(h):
-            for x in range(w):
-                cur = arr[y][x] >> read_rshift & 0b11
-                # print('%d' % cur, end='')
-                # floor
-                if not cur:
-                    # print('[*]', end='')
-                    continue
+        # print('\nRound %d\n========' % rd)
+        # rd += 1
+        # for row in arr:
+        #     for el in row:
+        #         cur = el >> read_rshift & 0b11
+        #         cur = '.' if not cur else 'L' if cur == 1 else '#'
+        #         print(cur, end='')
+        #     print()
 
-                adj_occu = 0
-                for adj_y in range(max(0, y - 1), min(y + 2, h)):
-                    for adj_x in range(max(0, x - 1), min(x + 2, w)):
-                        if x == adj_x and y == adj_y:
-                            continue
-                        adj = arr[adj_y][adj_x] >> read_rshift & 0b11
+        for ctr, nbrs in neighbors.items():
+            ctr_x, ctr_y = ctr
+            cur = arr[ctr_y][ctr_x] >> read_rshift & 0b11
 
-                        # occupied chair
-                        if adj == OCCUP:
-                            adj_occu += 1
-                # print('[%d]' % adj_occu, end='')
+            adj_occu = 0
+            for nbr in nbrs:
+                nbr_x, nbr_y = nbr
+                adj = arr[nbr_y][nbr_x] >> read_rshift & 0b11
 
-                arr[y][x] &= write_mask
-                # occupy this seat if adj unoccupied
-                if cur == EMPTY and adj_occu == 0:
-                    arr[y][x] |= (OCCUP << write_lshift)
+                if adj == OCCUP:
+                    adj_occu += 1
+
+            arr[ctr_y][ctr_x] &= write_mask
+            if cur == EMPTY and adj_occu == 0:
+                    arr[ctr_y][ctr_x] |= (OCCUP << write_lshift)
                     seat_changed = True
                     occupied += 1
-                # empty this seat if more than 4 occupied
-                elif cur == OCCUP and adj_occu >= 4:
-                    arr[y][x] |= (EMPTY << write_lshift)
-                    seat_changed = True
-                    occupied -= 1
-                # copy the seat over if no change
-                else:
-                    arr[y][x] |= (cur << write_lshift)
-                # print('>%d' % arr[y][x], end='')
-
-            # print()
+            # empty this seat if more than 4 occupied
+            elif cur == OCCUP and adj_occu >= 5:
+                arr[ctr_y][ctr_x] |= (EMPTY << write_lshift)
+                seat_changed = True
+                occupied -= 1
+            # copy the seat over if no change
+            else:
+                arr[ctr_y][ctr_x] |= (cur << write_lshift)
 
         # swap shifts and mask
         read_rshift, write_lshift = write_lshift, read_rshift
